@@ -1,0 +1,86 @@
+/**
+* by jingma ${date(),dateFormat='yyyy-MM-dd'}
+*/
+package ${package};
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+
+import net.sf.json.JSONObject;
+
+import org.hibernate.annotations.AccessType;
+import org.hibernate.annotations.GenericGenerator;
+
+/**
+ * ${classComments}
+ */
+@org.hibernate.annotations.Entity(selectBeforeUpdate = true, dynamicInsert = true, dynamicUpdate = true)
+@javax.persistence.Entity
+@javax.persistence.Table(name = "${tableName}")
+@AccessType("field")
+public class ${StringUtil.upperCaseFast(StringUtil.underlineTohump(tableName))} implements Serializable{
+
+	/**
+	 * 序列化
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	/**
+	 * 默认构造方法
+	 */
+	public ${StringUtil.upperCaseFast(StringUtil.underlineTohump(tableName))}() {
+	}
+
+	<%
+	//循环生成字段
+	for(col in colList){
+	var fieldName = StringUtil.underlineTohump(col.column_name);
+	var fieldType = StringUtil.oracleTypeToJavaType(col.data_type);
+	%>
+	/**
+	 * ${col.comments}
+	 */
+	<%
+	//判断是否为主键
+	if(StringUtil.isNotBlank(col.constraint_name)){
+	%>
+	@Id
+	@GenericGenerator(name="idGenerator",strategy="uuid")
+	@GeneratedValue(generator="idGenerator")
+	<% } %>
+	@Column(name = "${col.column_name}")
+	private ${fieldType} ${fieldName};
+	<% } %>
+	
+	<%
+	//循环生成字段的get、set方法
+	for(col in colList){
+	var fieldName = StringUtil.underlineTohump(col.column_name);
+	var fieldType = StringUtil.oracleTypeToJavaType(col.data_type);
+	%>
+	/**
+	 * @return ${col.comments}
+	 */
+	public ${fieldType} get${StringUtil.upperCaseFast(fieldName)}() {
+		return ${fieldName};
+	}
+	/**
+	 * @param ${fieldName} ${col.comments}
+	 */
+	public void set${StringUtil.upperCaseFast(fieldName)}(${fieldType} ${fieldName}) {
+		this.${fieldName} = ${fieldName};
+	}
+	
+	<% } %>
+	/**
+	 * 通用toString方法，将对象已JSON格式输出
+	 */
+	@Override
+	public String toString() {
+		return JSONObject.fromObject(this).toString();
+	}
+}

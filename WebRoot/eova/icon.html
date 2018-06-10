@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>EOVA ICON SELECT</title>
+<link rel="stylesheet" type="text/css" href="${CDN!}/plugins/eovaicon/icon.css">
+<link rel="stylesheet" type="text/css" href="${CDN!}/plugins/easyui/themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="${CDN!}/plugins/easyui/themes/icon.css">
+<link rel="stylesheet" type="text/css" href="${CDN!}/ui/eova/css/eova.css">
+
+<link rel="stylesheet" type="text/css" href="/plugins/easyui/themes/color.css">
+<link rel="stylesheet" type="text/css" href="/plugins/jsoneditor/jsoneditor.css">
+<link rel="stylesheet" type="text/css" href="/eova/htmltag/eova_tag.css">
+<link rel="stylesheet" type="text/css" href="/ui/css/common.css">
+<link rel="stylesheet" type="text/css" href="/plugins/nice/jquery.validator.css">
+<link rel="stylesheet" type="text/css" href="${CDN!}/plugins/jquery-easyui-portal/portal.css">
+
+<script type="text/javascript" src="${CDN!}/plugins/easyui/jquery-2.0.3.js"></script>
+<script type="text/javascript" src="${CDN!}/plugins/easyui/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="${CDN!}/plugins/eovaicon/icon.js"></script>
+</head>
+<body>
+<div>
+ 
+ <div id="layoutNorth" region="north" title="" style="height:60px;" split="true" class="panel-body layout-body">
+	<div id="eova-query" class="eova-form" style="margin-top: 20px;">
+			<div class="eova-form-field" title="图片名称[icon-applicationformadd]">
+				<div class="eova-form-lbl">图片名称:</div>
+				<div>
+					<div class="eova-text" id="name" data-options="">
+					<input type="text" autocomplete="off" name="query_name" style="width: 158px;">
+					<i class="ei" title="点击清空文本"></i></div>
+				</div>
+			</div>
+			<div class="easyui-panel" style="text-align: center;" data-options="border:false">
+				<td style="float: right;margin-right: 10px;border: solid 1px #CAD4CA;border-radius: 5px 5px 5px 5px;">
+					<a id="btn_query_icon" href="javascript:void(0);" class="easyui-linkbutton" data-options="iconCls:'icon-zoom',plain:true">快速查询</a>
+				</td>
+			</div>
+	</div>
+<script>
+var x = $("#eova-query").width();
+console.log(x);
+var max = parseInt(x/290);
+console.log('每行最多能显示：'+ max);
+if(max != 0){
+	var count = 3;
+	var zs = parseInt(count / max); 
+	var ys = count % max;
+	if(ys > 0){
+		zs++;
+	}
+	// 计算完整显示所需高度
+	var y = 40 + 25 * zs;
+	$("#eova-query").parent().parent().css("height", y + "px");
+	//console.log('ys'+ ys);
+	//console.log('共需：'+ zs);
+	//console.log('height：'+ y);
+}
+
+//$('div[class="eova-text"]').eovatext();
+$(function(){
+	$('#btn_query_icon').click({
+		var icon = $('input[name="query_name"]').text();
+		alter(icon);
+	});
+});
+</script></div>
+
+	<div id="icon_panel" class="icon_panel" style="width: 540px; height: 180px" align="center">
+		Loading...
+	</div>
+	
+	
+	<div class="easyui-panel" style="text-align: center;padding-top: 5px;" data-options="border:false">
+		<a id="btmPreviousPage" href="javascript:void(0);" onclick="previousIconPage();" class="easyui-linkbutton" data-options="iconCls:'resultsetprevious'">上一页</a>
+		<span id="pageInfo"></span>
+		<a id="btmNextPage" href="javascript:void(0);" onclick="nextIconPage();" class="easyui-linkbutton" data-options="iconCls:'resultsetnext'">下一页</a>
+	</div>
+</div>
+<input id="icon" type="hidden">
+<script type="text/javascript">
+	
+	var iconPage = 0; // 页面号
+	var iconSize = $.eovaIconData.length; // 图标总数
+	console.log(iconSize);
+	var columnSize = 18; // 图标列数
+	var rowSize = 7; // 图标行数
+	var iconPageSize = rowSize * columnSize; // 每页图标数
+	var iconPageCount = parseInt(iconSize / iconPageSize) + 1; // 页面大小
+	
+	function refreshIconPanel(pageIndex){
+		// 显示页号
+		$("#pageInfo").html("&nbsp;" + (pageIndex + 1) + " / " + iconPageCount + "&nbsp;");
+		var iconPanel = $("#icon_panel"); // 图标面板
+
+		// 计算图标数组坐标偏移量
+		var start = pageIndex * iconPageSize;
+		var end = start + iconPageSize;
+		// 如果结束位置大于图标数，则结束位置等于图标数
+		if(end > iconSize) end = iconSize;
+		// 清除图标面板
+		iconPanel.empty();
+		$('#btmPreviousPage').linkbutton('enable');
+		// 增加图标
+		for(var i = start;i < end; i++){
+			var iconName = $.eovaIconData[i];
+			var btn = $('<a iconname="' + iconName + '" href="#" title="' + iconName + '"class="easyui-linkbutton"></a>');
+			btn.linkbutton({iconCls: "" + iconName +""}).appendTo(iconPanel);
+		}
+		$(".icon_panel a").click(function(){
+			//alert($(this).attr("iconname"));
+			$('#icon').val($(this).attr("iconname"));
+		});
+	}
+	
+	// 显示下一页图标
+	function nextIconPage(){
+		if((iconPage + 1) == iconPageCount) return;
+		iconPage++;
+		if(iconPage == (iconPageCount - 1)){
+			$('#btmNextPage').linkbutton('disable');
+		} else {
+			$('#btmNextPage').linkbutton('enable');
+		}
+		$('#btmPreviousPage').linkbutton('enable');
+		refreshIconPanel(iconPage);
+	}
+	
+	// 显示上一页图标
+	function previousIconPage(){
+		if((iconPage - 1) < 0) return;
+		iconPage--;
+		if(iconPage == 0){
+			$('#btmPreviousPage').linkbutton('disable');
+		} else {
+			$('#btmPreviousPage').linkbutton('enable');
+		}
+		$('#btmNextPage').linkbutton('enable');
+		refreshIconPanel(iconPage);
+	}
+	
+	// 初始显示第一页图标
+	$(document).ready(function(){
+		$('#btmPreviousPage').linkbutton('disable');
+		refreshIconPanel(iconPage);
+	});
+	
+	// ****************************************
+	// Thanks,The Author By HuGao
+	// ****************************************
+	
+	var selectIcon = function($dialog, $input, sp) {
+		var imgUrl = $('#icon').val();
+		
+		// TODO 待修改ICON 方案
+// 		sp.removeClass();
+// 		sp.addClass("ei").addClass(imgUrl);
+		
+		$input.val(imgUrl);
+		$dialog.dialog('destroy');
+	};
+	
+</script>
+</body>
+</html>
